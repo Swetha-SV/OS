@@ -1,0 +1,331 @@
+﻿				EX-10
+
+21bcs033@mepcolinux DISK]$cat head.h imp.c app.c
+#include<stdio.h>
+#include<stdlib.h>
+void sort(int *cyl,int n);
+void print(int cur_head,int key,int totcy);
+int FCFS(int *cylst,int reqcnt,int totcy,int initheadpos);
+int SSTF(int *cylst,int reqcnt,int totcy,int initheadpos);
+int SCAN(int *cyl,int reqcnt,int totcy,int initheadpos,int prev);
+int CSCAN(int *cyl,int reqcnt,int totcy,int initheadpos,int prev);
+int LOOK(int *cyl,int reqcnt,int totcy,int initheadpos,int prev);
+int CLOOK(int *cyl,int reqcnt,int totcy,int initheadpos,int prev);
+int find_ind(int *cyl,int n,int key);
+#include "head.h"
+void print(int cur_head,int key,int totcy)
+{
+   if(cur_head == 0)
+      printf("<---BOUNDARY");
+   else if(cur_head == totcy-1)
+      printf("--->BOUNDARY");
+   else if(cur_head>key)
+      printf("--->%d",cur_head);
+   else
+      printf("<---%d",cur_head);
+}
+int find_ind(int *cyl,int n,int key)
+{
+   int i;
+   for(i=0;i<n;i++)
+   {
+      if(cyl[i]==key)
+	 return i;
+   }
+}
+void sort(int *cyl,int n)
+{
+   int i,j,temp;
+   for(i=0;i<n-1;i++)
+   {
+      for(j=0;j<n-i-1;j++)
+      {
+         if(cyl[j]>cyl[j+1])
+         {
+            temp=cyl[j];
+            cyl[j]=cyl[j+1];
+            cyl[j+1]=temp;
+         }
+      }
+   }
+}
+int FCFS(int *cylst,int reqcnt,int totcy,int initheadpos)
+{
+   int cur_head,val,i,total=0;
+   cur_head = initheadpos;
+   for(i=0;i<reqcnt;i++)
+   {
+      val = abs(cur_head - cylst[i]);
+      total += val;
+      print(cylst[i],cur_head,totcy);
+      cur_head = cylst[i];
+   }
+   printf("\n");
+   return total;
+}
+int SSTF(int *cylst,int reqcnt,int totcy,int initheadpos)
+{
+   int i,count=0,total=0,min,d,index,cur_head,tf[reqcnt];
+   cur_head = initheadpos;
+   for(i=0;i<reqcnt;i++)
+      tf[i]=0;
+   while(count!=reqcnt)
+   {
+   	  min=9999;
+      for(i=0;i<reqcnt;i++)
+      {
+      	 if(tf[i]!=1)
+      	 {
+            d = abs(cur_head - cylst[i]);
+            if(d<min)
+            {
+               min = d;
+               index = i;
+            }
+         }
+      }
+      total += min;
+      print(cylst[index],cur_head,totcy);
+      cur_head = cylst[index];
+      tf[index]=1;
+      count++;
+   }
+   printf("\n");
+   return total;
+}
+int SCAN(int *cyl,int reqcnt,int totcy,int initheadpos,int prev)
+{
+   int cur_head,i,total=0,d,index;
+   cur_head=initheadpos;
+   index = find_ind(cyl,reqcnt+3,initheadpos);
+   if(prev<initheadpos)
+   {
+      for(i=index+1;i<=reqcnt+2;i++)
+      {
+         d = abs(cur_head - cyl[i]);
+	 print(cyl[i],cur_head,totcy);
+         cur_head = cyl[i];
+         total+=d;
+      }
+      for(i=index-1;i>0;i--)
+      {
+         d = abs(cur_head - cyl[i]);
+	 print(cyl[i],cur_head,totcy);
+         cur_head = cyl[i];
+         total+=d;
+      }
+   }
+   else
+   {
+      for(i=index-1;i>=0;i--)
+      {
+         d = abs(cur_head - cyl[i]);
+	 print(cyl[i],cur_head,totcy);
+         cur_head = cyl[i];
+         total += d;
+      }
+      for(i=index+1;i<=reqcnt+1;i++)
+      {
+         d = abs(cur_head - cyl[i]);
+	 print(cyl[i],cur_head,totcy);
+         cur_head = cyl[i];
+         total+=d;
+      }
+   }
+   printf("\n");
+   return total;
+}
+int CSCAN(int *cyl,int reqcnt,int totcy,int initheadpos,int prev)
+{
+   int cur_head,i,j,total=0,d,index;
+   cur_head=initheadpos;
+   index = find_ind(cyl,reqcnt+3,initheadpos);
+   if(prev<initheadpos)
+   {
+      for(i=index+1;i<=reqcnt+2;i++)
+      {
+         d = abs(cur_head - cyl[i]);
+	 print(cyl[i],cur_head,totcy);
+         cur_head = cyl[i];
+         total+=d;
+      }
+      for(i=0;i<index;i++)
+      {
+         d = abs(cur_head - cyl[i]);
+	 print(cyl[i],cur_head,totcy);
+         cur_head = cyl[i];
+         total+=d;
+      }
+   }
+   else
+   {
+      for(i=index-1;i>=0;i--)
+      {
+
+         d = abs(cur_head - cyl[i]);
+	     print(cyl[i],cur_head,totcy);
+         cur_head = cyl[i];
+         total += d;
+      }
+      for(i=reqcnt+2;i>index;i--)
+      {
+         d = abs(cur_head - cyl[i]);
+	 print(cyl[i],cur_head,totcy);
+         cur_head = cyl[i];
+         total+=d;
+      }
+   }
+   printf("\n");
+   return total;
+}
+int LOOK(int *cyl,int reqcnt,int totcy,int initheadpos,int prev)
+{
+   int cur_head,i,j,total=0,d,index;
+   cur_head=initheadpos;
+   index = find_ind(cyl,reqcnt+3,initheadpos);
+   if(prev<initheadpos)
+   {
+      for(i=index+1;i<reqcnt+2;i++)
+      {
+         d = abs(cur_head - cyl[i]);
+	 print(cyl[i],cur_head,totcy);
+         cur_head = cyl[i];
+         total+=d;
+      }
+      for(i=index-1;i>0;i--)
+      {
+         d = abs(cur_head - cyl[i]);
+	 print(cyl[i],cur_head,totcy);
+         cur_head = cyl[i];
+         total+=d;
+      }
+   }
+   else
+   {
+      for(i=index-1;i>0;i--)
+      {
+
+         d = abs(cur_head - cyl[i]);
+	     print(cyl[i],cur_head,totcy);
+         cur_head = cyl[i];
+         total += d;
+      }
+      for(i=index+1;i<reqcnt+2;i++)
+      {
+         d = abs(cur_head - cyl[i]);
+	 print(cyl[i],cur_head,totcy);
+         cur_head = cyl[i];
+         total+=d;
+      }
+   }
+   printf("\n");
+   return total;
+}
+int CLOOK(int *cyl,int reqcnt,int totcy,int initheadpos,int prev)
+{
+   int cur_head,i,j,total=0,d,index;
+   cur_head=initheadpos;
+   index = find_ind(cyl,reqcnt+3,initheadpos);
+   if(prev<initheadpos)
+   {
+      for(i=index+1;i<reqcnt+2;i++)
+      {
+         d = abs(cur_head - cyl[i]);
+	 print(cyl[i],cur_head,totcy);
+         cur_head = cyl[i];
+         total+=d;
+      }
+      for(i=1;i<index;i++)
+      {
+         d = abs(cur_head - cyl[i]);
+	 print(cyl[i],cur_head,totcy);
+         cur_head = cyl[i];
+         total+=d;
+      }
+   }
+   else
+   {
+      for(i=index-1;i>0;i--)
+      {
+
+         d = abs(cur_head - cyl[i]);
+	     print(cyl[i],cur_head,totcy);
+         cur_head = cyl[i];
+         total += d;
+      }
+      for(i=reqcnt+1;i>index;i--)
+      {
+         d = abs(cur_head - cyl[i]);
+	     print(cyl[i],cur_head,totcy);
+         cur_head = cyl[i];
+         total+=d;
+      }
+   }
+   printf("\n");
+   return total;
+}
+
+#include"head.h"
+int main()
+{
+   int i,j,ch,reqcnt,totcy,initheadpos,ans,prev;
+   int cylst[50],cyl[50];
+   printf("Total no of cylinders? ");
+   scanf("%d",&totcy);
+   printf("No of requests? ");
+   scanf("%d",&reqcnt);
+   printf("Requests? ");
+   for(i=0;i<reqcnt;i++)
+      scanf("%d",&cylst[i]);
+   printf("Initial head position? ");
+   scanf("%d",&initheadpos);
+   printf("Previos head position? ");
+   scanf("%d",&prev);
+   cyl[0]=0;
+   cyl[1]=initheadpos;
+   cyl[reqcnt+2]=totcy-1;
+   for(i=0,j=2;i<reqcnt;i++,j++)
+   {
+      cyl[j] = cylst[i];
+   }
+   sort(cyl,reqcnt+3);
+   do
+   {
+      printf("\n----------DISK SCHEDULING ALGORITHMS----------\n");
+      printf("1.FCFS\n2.SSTF\n3.SCAN\n4.CSCAN\n5.LOOK\n6.CLOOK\n7.EXIT\nYour choice? ");
+      scanf("%d",&ch);
+      switch(ch)
+      {
+         case 1:
+            printf("----------FCFS----------\nThe seek sequence is\n");
+            ans = FCFS(cylst,reqcnt,totcy,initheadpos);
+            printf("\nThe total head movement is: %d\n",ans);
+            break;
+         case 2:
+            printf("----------SSTF----------\nThe seek sequence is\n");
+            ans = SSTF(cylst,reqcnt,totcy,initheadpos);
+            printf("\nThe total head movement is: %d\n",ans);
+            break;
+         case 3:
+            printf("----------SCAN----------\nThe seek sequence is\n");
+            ans = SCAN(cyl,reqcnt,totcy,initheadpos,prev);
+            printf("\nThe total head movement is: %d\n",ans);
+            break;
+         case 4:
+            printf("----------CSCAN----------\nThe seek sequence is\n");
+            ans = CSCAN(cyl,reqcnt,totcy,initheadpos,prev);
+            printf("\nThe total head movement is: %d\n",ans);
+            break;            
+         case 5:
+            printf("----------LOOK----------\nThe seek sequence is\n");
+            ans = LOOK(cyl,reqcnt,totcy,initheadpos,prev);
+            printf("\nThe total head movement is: %d\n",ans);
+            break;
+         case 6:
+            printf("----------CLOOK----------\nThe seek sequence is\n");
+            ans = CLOOK(cyl,reqcnt,totcy,initheadpos,prev);
+            printf("\nThe total head movement is: %d\n",ans);
+            break;
+      }
+   }while(ch!=7);  
+}

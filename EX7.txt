@@ -1,0 +1,447 @@
+﻿				EX7
+
+
+
+/*
+ * C program to implement the deadlock avoidance algorithms like Hold and wait and circular wait
+ **/
+#include<stdio.h>
+#include<stdlib.h>
+void print(int **alloc,int **need,int *avail,int p,int r);
+void hold_wait(int **alloc,int **need,int **max,int *avail,int *req,int p,int r);
+void circular_wait(int **alloc,int **need,int **max,int *avail,int *r_prior,int *p_prior,int pr,int rc,int p,int r);
+[21bcs033@mepcolinux EX-7]$cat imp.c
+#include "head.h"
+void print(int **alloc,int **need,int *avail,int p,int r)
+{
+   int i,j;
+   printf("Allocation\tNeed\n");
+   for(i=0;i<p;i++)
+   {
+      for(j=0;j<r;j++)
+         printf("%d ",alloc[i][j]);
+      printf("\t\t");
+      for(j=0;j<r;j++)
+         printf("%d ",need[i][j]);
+      printf("\n");
+   }
+   printf("\nAvailable\n");
+   for(j=0;j<r;j++)
+      printf("%d ",avail[j]);
+   printf("\n");
+}
+void hold_wait(int **alloc,int **need,int **max,int *avail,int *req,int p,int r)
+{
+   int i,flag;
+   for(i=0;i<r;i++)
+   {
+      flag = 0;
+      if(req[i] > need[p][i] || req[i] > avail[i])
+      {
+         flag = 1;
+         break;
+      }
+   }
+   if(flag)
+   {
+      for(i=0;i<r;i++)
+      {
+         avail[i] += alloc[p][i];
+         alloc[p][i] = 0;
+         need[p][i] = max[p][i];
+      }
+      printf("RESOURCE CAN'T BE GRANTED,since request greater than available\n");
+   }
+   else
+   {
+      for(i=0;i<r;i++)
+      {
+         alloc[p][i] += req[i];
+         avail[i] -= req[i];
+         need[p][i] -= req[i];
+      }
+      printf("RESOURCE GRANTED\n");
+   }
+}
+void circular_wait(int **alloc,int **need,int **max,int *avail,int *r_prior,int *p_prior,int pr,int rc,int p,int r)
+{
+   int i,j;
+   for(i=0;i<p;i++)
+   {
+      p_prior[i]=-1;
+      for(j=0;j<r;j++)
+      {
+         if(alloc[i][j]!=0)
+         {
+            if(p_prior[i]<r_prior[j])
+               p_prior[i] = r_prior[j];
+         }
+      }
+   }
+   if(r_prior[rc]<p_prior[pr])
+   {
+      printf("RESOURCE CAN'T BE GRANTED,since the priority of resource is less than the process priority\n");
+      printf("Priority of the process : %d \n",p_prior[pr]);
+      printf("Priority of the resource it is requesting  : %d \n",r_prior[rc]);
+  }
+   else
+   {
+   		int req;
+		printf("Priority of the process : %d \n",p_prior[pr]);
+		printf("Priority of the resource it is requesting  : %d \n",r_prior[rc]);
+   		printf("Resouce Request accepted\n");
+   		printf("give the needed resource  : ");
+   		scanf("%d",&req);
+   		if(need[pr][rc] < req || avail[rc]<req)
+   		{
+   			printf("Resource cannot be granted");
+   			avail[rc]+=alloc[pr][rc];
+   			alloc[pr][rc]=0;
+   			need[pr][rc]=max[pr][rc];
+		  
+		}
+		else
+		{
+			printf("Resource Can be granted\n");
+			alloc[pr][rc]+=req;
+			avail[rc]-=req;
+			need[pr][rc]-=req;
+			
+			
+		}
+   			
+   		
+   }
+      
+}
+
+[21bcs033@mepcolinux EX-7]$cat app.c
+#include "head.h"
+int main()
+{
+   int **alloc,**max,**need;
+   int *avail,*req,*r_prior,*p_prior;
+   int p,r,i,j,ch,c,pr,rc;
+   printf("\n\tIMPLEMENTATION OF DEADLOCK PREVENTION ALGORTHIMS\n\n");
+   printf("Give the no of processes: ");
+   scanf("%d",&p);
+   printf("Give the no of resources: ");
+   scanf("%d",&r);
+   req = (int *)malloc(sizeof(int)*r);
+   r_prior = (int *)malloc(sizeof(int)*r);
+   p_prior = (int *)malloc(sizeof(int)*p);
+   alloc = (int **)malloc(sizeof(int *)*p);
+   max = (int **)malloc(sizeof(int *)*p);
+   need = (int **)malloc(sizeof(int *)*p);
+   avail = (int *)malloc(sizeof(int)*r);
+   for(i=0;i<p;i++)
+   {
+      alloc[i] = (int *)malloc(sizeof(int)*r);
+      max[i] = (int *)malloc(sizeof(int)*r);
+      need[i] = (int *)malloc(sizeof(int)*r);
+   }
+   printf("Give the allocation matrix:\n");
+   for(i=0;i<p;i++)
+   {
+      for(j=0;j<r;j++)
+      {
+         scanf("%d",&alloc[i][j]);
+      }
+   }
+   printf("Give the maximum matrix:\n");
+   for(i=0;i<p;i++)
+   {
+      for(j=0;j<r;j++)
+      {
+         scanf("%d",&max[i][j]);
+         need[i][j] = max[i][j] - alloc[i][j];
+      }
+   }
+   printf("Give the Available Resources\n");
+   for(i=0;i<r;i++)
+      scanf("%d",&avail[i]);
+   printf("Give the Resource priority\n");
+   for(i=0;i<r;i++)
+      scanf("%d",&r_prior[i]);
+   do
+   {
+   	   printf("\n----------------------------------\n");
+   	   printf("DEADLOAD PREVENNTION ALGORTHIMS\n");
+      printf("1.HOLD AND WAIT\n2.CIRCULAR WAIT\n3.EXIT\n");
+      printf("\n----------------------------------\n");
+	  printf("\nGive your choice: ");
+      scanf("%d",&ch);
+      switch(ch)
+      {
+         case 1:
+            print(alloc,need,avail,p,r);
+            do
+            {
+                printf("\n\tHOLD AND WAIT");
+            	printf("\n----------------------------------\n");
+               printf("\n1.REQUEST\n2.EXIT\n");
+               printf("\n----------------------------------\n");
+               printf("Give your choice : ");
+               scanf("%d",&c);
+               switch(c)
+               {
+                  case 1:
+                     printf("\nWhich process made the resource request : ");
+                     scanf("%d",&pr);
+                     printf("Request: ");
+                     for(i=0;i<r;i++)
+                        scanf("%d",&req[i]);
+                     hold_wait(alloc,need,max,avail,req,pr,r);
+                     print(alloc,need,avail,p,r);
+                     break;
+               }
+            }while(c!=2);
+            break;
+         case 2:
+            print(alloc,need,avail,p,r);
+            do
+            {
+            	
+            	printf("\n\tCIRCULAR WAIT");
+            	printf("\n----------------------------------\n");
+               printf("\n1.REQUEST\n2.EXIT\n");
+               printf("\n----------------------------------\n");
+               printf("Give your choice : ");
+               scanf("%d",&c);
+               switch(c)
+               {
+                  case 1:
+                     printf("\nWhich process made the resource request : ");
+                     scanf("%d",&pr);
+                     printf("Resource requested: ");
+                     scanf("%d",&rc);
+                     circular_wait(alloc,need,max,avail,r_prior,p_prior,pr,rc,p,r);
+                     print(alloc,need,avail,p,r);
+                     break;
+               }
+            }while(c<2);
+            break;
+      }
+   }while(ch!=3);
+}
+[21bcs033@mepcolinux EX-7]$cat makefile
+bank: imp.o app.o
+	cc imp.o app.o -o bank
+app.o: app.c
+	cc app.c -c
+imp.o: imp.c
+	cc imp.c -c
+
+
+[21bcs033@mepcolinux EX-7]$./bank 
+
+	IMPLEMENTATION OF DEADLOCK PREVENTION ALGORTHIMS
+
+Give the no of processes: 4
+Give the no of resources: 3
+Give the allocation matrix:
+1 0 3
+2 1 4
+3 2 1
+4 1 0
+Give the maximum matrix:
+4 1 4
+5 2 6
+6 3 2
+5 2 6
+Give the Available Resources
+5 4 3
+Give the Resource priority
+12 10 11 
+
+----------------------------------
+DEADLOAD PREVENNTION ALGORTHIMS
+1.HOLD AND WAIT
+2.CIRCULAR WAIT
+3.EXIT
+
+----------------------------------
+
+Give your choice: 1
+Allocation	Need
+1 0 3 		3 1 1 
+2 1 4 		3 1 2 
+3 2 1 		3 1 1 
+4 1 0 		1 1 6 
+
+Available
+5 4 3 
+
+	HOLD AND WAIT
+----------------------------------
+
+1.REQUEST
+2.EXIT
+
+----------------------------------
+Give your choice : 3
+
+	HOLD AND WAIT
+----------------------------------
+
+1.REQUEST
+2.EXIT
+
+----------------------------------
+Give your choice : 1   
+
+Which process made the resource request : 3
+Request: 2 1 7
+RESOURCE CAN'T BE GRANTED,since request greater than available
+Allocation	Need
+1 0 3 		3 1 1 
+2 1 4 		3 1 2 
+3 2 1 		3 1 1 
+0 0 0 		5 2 6 
+
+Available
+9 5 3 
+
+	HOLD AND WAIT
+----------------------------------
+
+1.REQUEST
+2.EXIT
+
+----------------------------------
+Give your choice : 1
+
+Which process made the resource request : 0
+Request: 2 0 0
+RESOURCE GRANTED
+Allocation	Need
+3 0 3 		1 1 1 
+2 1 4 		3 1 2 
+3 2 1 		3 1 1 
+0 0 0 		5 2 6 
+
+Available
+7 5 3 
+
+	HOLD AND WAIT
+----------------------------------
+
+1.REQUEST
+2.EXIT
+
+----------------------------------
+Give your choice : 2
+
+----------------------------------
+DEADLOAD PREVENNTION ALGORTHIMS
+1.HOLD AND WAIT
+2.CIRCULAR WAIT
+3.EXIT
+
+----------------------------------
+
+Give your choice: 2
+Allocation	Need
+3 0 3 		1 1 1 
+2 1 4 		3 1 2 
+3 2 1 		3 1 1 
+0 0 0 		5 2 6 
+
+Available
+7 5 3 
+
+	CIRCULAR WAIT
+----------------------------------
+
+1.REQUEST
+2.EXIT
+
+----------------------------------
+Give your choice : 1
+
+Which process made the resource request : 3
+Resource requested: 2
+Priority of the process : -1 
+Priority of the resource it is requesting  : 11 
+Resouce Request accepted
+give the needed resource  : 2
+Resource Can be granted
+Allocation	Need
+3 0 3 		1 1 1 
+2 1 4 		3 1 2 
+3 2 1 		3 1 1 
+0 0 2 		5 2 4 
+
+Available
+7 5 1 
+
+	CIRCULAR WAIT
+----------------------------------
+
+1.REQUEST
+2.EXIT
+
+----------------------------------
+Give your choice : 1
+
+Which process made the resource request : 1
+Resource requested: 1
+RESOURCE CAN'T BE GRANTED,since the priority of resource is less than the process priority
+Priority of the process : 12 
+Priority of the resource it is requesting  : 10 
+Allocation	Need
+3 0 3 		1 1 1 
+2 1 4 		3 1 2 
+3 2 1 		3 1 1 
+0 0 2 		5 2 4 
+
+Available
+7 5 1 
+
+	CIRCULAR WAIT
+----------------------------------
+
+1.REQUEST
+2.EXIT
+
+----------------------------------
+Give your choice : 1
+
+Which process made the resource request : 3
+Resource requested: 0
+Priority of the process : 11 
+Priority of the resource it is requesting  : 12 
+Resouce Request accepted
+give the needed resource  : 6
+Resource cannot be granted
+Allocation	Need
+3 0 3 		1 1 1 
+2 1 4 		3 1 2 
+3 2 1 		3 1 1 
+0 0 2 		5 2 4 
+
+Available
+7 5 1 
+
+	CIRCULAR WAIT
+----------------------------------
+
+1.REQUEST
+2.EXIT
+
+----------------------------------
+Give your choice : 2
+
+----------------------------------
+DEADLOAD PREVENNTION ALGORTHIMS
+1.HOLD AND WAIT
+2.CIRCULAR WAIT
+3.EXIT
+
+----------------------------------
+
+Give your choice: 3
+
+[21bcs033@mepcolinux EX-7]$exit
+exit
+

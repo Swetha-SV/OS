@@ -1,0 +1,506 @@
+﻿
+
+				EX 8
+
+
+[21bcs033@mepcolinux EX-8]$cat Ex8.prn 
+Script started on Friday 15 September 2023 01:27:07 PM IST
+[21bcs033@mepcolinux EX-8]$cd MEMORY/
+[21bcs033@mepcolinux MEMORY]$cat head.h 
+/*
+ * C Program to implement various contiguous memory management schemes like First fit,Best fit & Worst fit
+ * And find the total internal and exterenal fragmentation
+ * */
+#include<stdio.h>
+#include<stdlib.h>
+void firstfit(int *process,int *hole,int *intfrag,int *extfrag,int p,int m);
+void bestfit(int *process,int *hole,int *intfrag,int *extfrag,int p,int m);
+void worstfit(int *process,int *hole,int *intfrag,int *extfrag,int p,int m);
+[21bcs033@mepcolinux MEMORY]$cat app.c
+#include"head.h"
+int main()
+{
+   printf("\t\tMemory Fit algorthims\n\n");
+   int p,m,ch,i;
+   printf("No of processes ? ");
+   scanf("%d",&p);
+   printf("No of memory partitions ? ");
+   scanf("%d",&m);
+   int process[p],hole[m],intfrag[m],extfrag[m];
+   printf("Give the size of the memory partitions:\n");
+   for(i=0;i<m;i++)
+      scanf("%d",&hole[i]);
+   printf("Give the  size of the processes:\n");
+   for(i=0;i<p;i++)
+      scanf("%d",&process[i]);
+   for(i=0;i<m;i++)
+      extfrag[i]=0;
+   do
+   {
+      printf("\n------------------------------\n");
+      printf("MENU\n1.First fit  Algorithm\n2.Best fit Algorthim\n3.Worst fit Algorthim\n4.Exit\n");
+      printf("---------------------------------\n");
+      printf("Give your choice(1-4) : ");
+      scanf("%d",&ch);
+      switch(ch)
+      {
+         case 1:
+            printf("\t\tFIRST FIT ALGORITHM\n");
+            firstfit(process,hole,intfrag,extfrag,p,m);
+   for(i=0;i<m;i++)
+      extfrag[i]=0;
+            break;
+         case 2:
+	printf("\t\tBEST FIT ALGORITHM\n");
+            bestfit(process,hole,intfrag,extfrag,p,m);
+   for(i=0;i<m;i++)
+      extfrag[i]=0;
+            break;
+         case 3:
+	printf("\t\tWORST FIT ALGORITHM\n");
+            worstfit(process,hole,intfrag,extfrag,p,m);
+   for(i=0;i<m;i++)
+      extfrag[i]=0;
+            break;
+         case 4:
+            printf("Exited....\n");
+            break;
+         default:
+            printf("Give a  valid choice.\n");
+      }
+   }while(ch!=4);
+}
+[21bcs033@mepcolinux MEMORY]$cat imp.c
+#include"head.h"
+void firstfit(int *process,int *hole,int *intfrag,int *extfrag,int p,int m)
+{
+   int i,j,temphole[m],partition[p],tot_intfrag=0,tot_extfrag=0;
+   for(i=0;i<m;i++)
+   {
+      temphole[i]=hole[i];
+      intfrag[i]=hole[i];
+      extfrag[i]=0;
+   }
+   for(i=0;i<p;i++)
+   {
+      partition[i]=-1;
+      for(j=0;j<m;j++)
+      {
+         if(process[i]<=temphole[j])
+         {
+            partition[i]=j;
+            temphole[j]-=process[i];
+            intfrag[j]-=process[i];
+            break;
+         }
+      }
+   }
+   printf("\nMemory partition\n");
+   printf("No\tSize\n");
+   for(i=0;i<m;i++)
+      printf("%d\t%d\n",i,hole[i]);
+   printf("\nProcess Available\n");
+   for(i=0;i<p;i++)
+      printf("%d\t%d\n",i,process[i]);
+   printf("\n\tThe memory allocation \n\n");
+   for(i=0;i<p;i++)
+   {
+      if(partition[i]==-1)
+         printf("The process of size %d cannot be satisfied\n",process[i]);
+      else
+         printf("The process of size %d is allocated in block %d\n",process[i],partition[i]);
+   }
+   printf("\nThe internal fragmentation\n");
+   printf("\nNo\tInternal Fragmentation\n");
+   for(i=0;i<m;i++)
+   {
+      if(hole[i]==intfrag[i])
+     {
+         intfrag[i]=0;
+	 extfrag[i]=hole[i];
+     }
+      printf("%d\t%d\n",i,intfrag[i]);
+      tot_intfrag+=intfrag[i];
+   }
+   printf("\nThe total internal fragmentation is:%d\n\n",tot_intfrag);
+   printf("\nThe external fragmentation \n");
+   printf("\nNo\tSize\n");
+   for(i=0;i<m;i++)
+   {
+      printf("%d\t%d\n",i,extfrag[i]);
+      tot_extfrag+=extfrag[i];
+   }
+   printf("\nThe total external fragmentation is:%d\n\n",tot_extfrag);
+}
+void bestfit(int *process,int *hole,int *intfrag,int *extfrag,int p,int m)
+{
+   int i,j,temphole[m],partition[p],tot_intfrag=0,tot_extfrag=0,b_fit;
+   for(i=0;i<m;i++)
+   {
+      temphole[i]=hole[i];
+      intfrag[i]=hole[i];
+      extfrag[i]=0;
+   }
+   for(i=0;i<p;i++)
+   {
+      b_fit=-1;
+      partition[i]=-1;
+      for(j=0;j<m;j++)
+      {
+         if(process[i]<=temphole[j])
+         {
+            if(b_fit==-1)
+               b_fit=j;
+            else if(temphole[b_fit]>temphole[j])
+               b_fit=j;
+         }
+      }
+      if(b_fit!=-1)
+      {
+            partition[i]=b_fit;
+            temphole[b_fit]-=process[i];
+            intfrag[b_fit]-=process[i];
+      }
+   }
+   printf("\nMemory partition\n");
+   printf("No\tSize\n");
+   for(i=0;i<m;i++)
+      printf("%d\t%d\n",i,hole[i]);
+   printf("\nProcess Available\n");
+   for(i=0;i<p;i++)
+      printf("%d\t%d\n",i,process[i]);
+   printf("\nThe memory allocation is\n\n");
+   for(i=0;i<p;i++)
+   {
+      if(partition[i]==-1)
+         printf("The process of size %d cannot be satisfied\n",process[i]);
+      else
+         printf("The process of size %d is allocated in block %d\n",process[i],partition[i]);
+   }
+   printf("\nThe internal fragmentation are:\n");
+   printf("\nNo\tSize\n");
+   for(i=0;i<m;i++)
+   {
+      if(hole[i]==intfrag[i])
+      {
+         intfrag[i]=0;
+	 extfrag[i]=hole[i];
+      }
+      printf("%d\t%d\n",i,intfrag[i]);
+      tot_intfrag+=intfrag[i];
+   }
+   printf("\nThe total internal fragmentation is:%d\n\n",tot_intfrag);
+   printf("\nThe external fragmentation \n");
+   printf("\nNo\tSize\n");
+   for(i=0;i<m;i++)
+   {
+      printf("%d\t%d\n",i,extfrag[i]);
+      tot_extfrag+=extfrag[i];
+   }
+   printf("\nThe total external fragmentation is:%d\n\n",tot_extfrag);
+}
+void worstfit(int *process,int *hole,int *intfrag,int *extfrag,int p,int m)
+{
+   int i,j,temphole[m],partition[p],tot_intfrag=0,tot_extfrag=0,w_fit;
+   for(i=0;i<m;i++)
+   {
+      temphole[i]=hole[i];
+      intfrag[i]=hole[i];
+      extfrag[i]=0;
+   }
+   for(i=0;i<p;i++)
+   {
+      w_fit=-1;
+      partition[i]=-1;
+      for(j=0;j<m;j++)
+      {
+         if(process[i]<=temphole[j])
+         {
+            if(w_fit==-1)
+               w_fit=j;
+            else if(temphole[w_fit]<temphole[j])
+               w_fit=j;
+         }
+      }
+      if(w_fit!=-1)
+      {
+            partition[i]=w_fit;
+            temphole[w_fit]-=process[i];
+            intfrag[w_fit]-=process[i];
+      }
+   }
+   printf("\nMemory partition\n");
+   printf("\nNo\tSize\n");
+   for(i=0;i<m;i++)
+      printf("%d\t%d\n",i,hole[i]);
+   printf("\nProcess Available\n");
+   for(i=0;i<p;i++)
+      printf("%d\t%d\n",i,process[i]);
+   printf("\nThe memory allocation is\n\n");
+   for(i=0;i<p;i++)
+   {
+      if(partition[i]==-1)
+         printf("The process of size %d cannot be satisfied\n",process[i]);
+      else
+         printf("The process of size  %d is allocated in block %d\n",process[i],partition[i]);
+   }
+   printf("\nThe internal fragmentation are:\n");
+   printf("\nNo\tSize\n");
+   for(i=0;i<m;i++)
+   {
+      if(hole[i]==intfrag[i])
+      {
+         intfrag[i]=0;
+	 extfrag[i]=hole[i];
+      }
+      printf("%d\t%d\n",i,intfrag[i]);
+
+      tot_intfrag+=intfrag[i];
+   }
+   printf("\nThe total internal fragmentation is:%d\n\n",tot_intfrag);
+   printf("\nThe external fragmentation are\n");
+   printf("\nNo\tSize\n");
+   for(i=0;i<m;i++)
+   {
+      printf("%d\t%d\n",i,extfrag[i]);
+      tot_extfrag+=extfrag[i];
+   }
+   printf("\nThe total external fragmentation is:%d\n\n",tot_extfrag);
+}
+[21bcs033@mepcolinux MEMORY]$cat makefile 
+mem: imp.o app.o
+	cc imp.o app.o -o mem
+imp.o: imp.c
+	cc -c imp.c
+app.o: app.c
+	cc -c app.c
+[21bcs033@mepcolinux MEMORY]$make
+make: `mem' is up to date.
+[21bcs033@mepcolinux MEMORY]$./mem 
+		Memory Fit algorthims
+
+No of processes ? 6
+No of memory partitions ? 7
+Give the size of the memory partitions:
+600 
+200
+115
+350
+750
+470
+580
+Give the  size of the processes:
+700 
+100
+317
+198
+450
+500
+
+------------------------------
+MENU
+1.First fit  Algorithm
+2.Best fit Algorthim
+3.Worst fit Algorthim
+4.Exit
+---------------------------------
+Give your choice(1-4) : 1
+		FIRST FIT ALGORITHM
+
+Memory partition
+No	Size
+0	600
+1	200
+2	115
+3	350
+4	750
+5	470
+6	580
+
+Process Available
+0	700
+1	100
+2	317
+3	198
+4	450
+5	500
+
+	The memory allocation 
+
+The process of size 700 is allocated in block 4
+The process of size 100 is allocated in block 0
+The process of size 317 is allocated in block 0
+The process of size 198 is allocated in block 1
+The process of size 450 is allocated in block 5
+The process of size 500 is allocated in block 6
+
+The internal fragmentation
+
+No	Internal Fragmentation
+0	183
+1	2
+2	0
+3	0
+4	50
+5	20
+6	80
+
+The total internal fragmentation is:335
+
+
+The external fragmentation 
+
+No	Size
+0	0
+1	0
+2	115
+3	350
+4	0
+5	0
+6	0
+
+The total external fragmentation is:465
+
+
+------------------------------
+MENU
+1.First fit  Algorithm
+2.Best fit Algorthim
+3.Worst fit Algorthim
+4.Exit
+---------------------------------
+Give your choice(1-4) : 2
+		BEST FIT ALGORITHM
+
+Memory partition
+No	Size
+0	600
+1	200
+2	115
+3	350
+4	750
+5	470
+6	580
+
+Process Available
+0	700
+1	100
+2	317
+3	198
+4	450
+5	500
+
+The memory allocation is
+
+The process of size 700 is allocated in block 4
+The process of size 100 is allocated in block 2
+The process of size 317 is allocated in block 3
+The process of size 198 is allocated in block 1
+The process of size 450 is allocated in block 5
+The process of size 500 is allocated in block 6
+
+The internal fragmentation are:
+
+No	Size
+0	0
+1	2
+2	15
+3	33
+4	50
+5	20
+6	80
+
+The total internal fragmentation is:200
+
+
+The external fragmentation 
+
+No	Size
+0	600
+1	0
+2	0
+3	0
+4	0
+5	0
+6	0
+
+The total external fragmentation is:600
+
+
+------------------------------
+MENU
+1.First fit  Algorithm
+2.Best fit Algorthim
+3.Worst fit Algorthim
+4.Exit
+---------------------------------
+Give your choice(1-4) : 3
+		WORST FIT ALGORITHM
+
+Memory partition
+
+No	Size
+0	600
+1	200
+2	115
+3	350
+4	750
+5	470
+6	580
+
+Process Available
+0	700
+1	100
+2	317
+3	198
+4	450
+5	500
+
+The memory allocation is
+
+The process of size  700 is allocated in block 4
+The process of size  100 is allocated in block 0
+The process of size  317 is allocated in block 6
+The process of size  198 is allocated in block 0
+The process of size  450 is allocated in block 5
+The process of size 500 cannot be satisfied
+
+The internal fragmentation are:
+
+No	Size
+0	302
+1	0
+2	0
+3	0
+4	50
+5	20
+6	263
+
+The total internal fragmentation is:635
+
+
+The external fragmentation are
+
+No	Size
+0	0
+1	200
+2	115
+3	350
+4	0
+5	0
+6	0
+
+The total external fragmentation is:665
+
+
+------------------------------
+MENU
+1.First fit  Algorithm
+2.Best fit Algorthim
+3.Worst fit Algorthim
+4.Exit
+---------------------------------
+Give your choice(1-4) : 4
+Exited....
+[21bcs033@mepcolinux MEMORY]$exit
+exit

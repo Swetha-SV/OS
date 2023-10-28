@@ -1,0 +1,439 @@
+﻿				EX6
+
+
+[21bcs033@mepcolinux EX-6]$cat EX6.prn 
+Script started on Thursday 07 September 2023 02:19:56 PM IST
+[21bcs033@mepcolinux BANK]$cat head.h
+/*
+ * C program to implement safety algothims to check whether the system is safe or not.
+ * And to implement Request for resource by a process will be granted or not.
+ * */
+#include <stdio.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#define MAX 10
+int find_safe_process(int processes,int resources,int need[MAX][MAX],int work[MAX],bool finish[MAX]) ;
+int detectSafety(int processes,int resources,int available[MAX],int max[MAX][MAX],int allocation[MAX][MAX]);
+int processResourceReq(int processes,int resources,int n,int req[MAX],int available[MAX],int max[MAX][MAX],int allocation[MAX][MAX]);
+
+[21bcs033@mepcolinux BANK]$cat imp.c
+#include "head.h"
+int find_safe_process(int processes,int resources,int need[MAX][MAX],int work[MAX],bool finish[MAX]) {
+  int i;
+   for ( i = 0; i < processes; i++) {
+        if (!finish[i]) {
+            int j;
+            for (j = 0; j < resources; j++) {
+                if (need[i][j] > work[j])
+                    break;
+            }
+            if (j == resources)
+                return i;
+        }
+    }
+    return -1; // No safe process found
+}
+int detectSafety(int processes,int resources,int available[MAX],int max[MAX][MAX],int allocation[MAX][MAX])
+{
+	int safeSeq[MAX];
+	int need[MAX][MAX],work[MAX];
+	bool finish[MAX];
+    int count = 0,i,j;
+    for (i = 0; i < processes; i++) {
+    	work[i]=available[i];
+        for (j = 0; j < resources; j++) {
+            need[i][j] = max[i][j] - allocation[i][j];
+        }
+    }
+    for (i = 0; i < processes; i++) {
+        finish[i] = false;
+    }
+    while (count < processes) {
+        int process = find_safe_process(processes,resources,need,work,finish);
+
+        if (process == -1) {
+            return -1;
+        }
+
+        // Execute the process
+        for (i = 0; i < resources; i++) {
+            work[i] += allocation[process][i];
+        }
+
+        finish[process] = true;
+        safeSeq[count++] = process;
+    }
+
+    printf("\nSystem is in a safe state\n\nSafe sequence is: ");
+    printf("< ");
+    for (i = 0; i < processes; i++) {
+    	if(i==processes-1)
+        	printf("P%d ", safeSeq[i]);
+        else
+        	printf("P%d , ", safeSeq[i]);
+    }
+    printf(">\n");
+    return 1;
+
+}
+int processResourceReq(int processes,int resources,int n,int req[MAX],int available[MAX],int max[MAX][MAX],int allocation[MAX][MAX])
+{
+    int need[MAX][MAX],i,j;
+	for (i = 0; i < processes; i++) {
+        for (j = 0; j < resources; j++) {
+            need[i][j] = max[i][j] - allocation[i][j];
+        }
+    }
+    for(i=0;i<resources;i++)
+	{
+		
+		if(req[i]<=need[n][i])
+		{
+			continue;
+		}
+		else
+		{
+			return -2;
+		}
+	} 
+	for(i=0;i<resources;i++)
+	{
+		if(req[i]<=available[i])
+		{
+			continue;
+		}
+		else
+		{
+			return -3;
+		}
+	} 
+    for (j = 0; j < resources; j++) {
+            available[j]-=req[j];
+			allocation[n][j]+=req[j];   
+	}
+	int res=detectSafety(processes,resources,available,max,allocation);
+	return res;
+	   
+}
+
+[21bcs033@mepcolinux BANK]$cat app.c
+#include "head.h"
+int main() {
+    
+	int processes, resources;
+	int allocation[MAX][MAX];
+	int max[MAX][MAX];
+	int available[MAX];
+	int need[MAX][MAX];
+	int finish[MAX];
+    int choice,i,j;
+    printf("\t\tBANKERS ALGORTHIM\n\n");
+    printf("Number of processes: ");
+    scanf("%d", &processes);
+   	printf("Number of resources: ");
+   	scanf("%d", &resources);
+   	printf("Give the allocation matrix:\n");
+   	for (i = 0; i < processes; i++) {
+	        for (j = 0; j < resources; j++) {
+           scanf("%d", &allocation[i][j]);
+        }
+	}
+   	printf("Give the maximum matrix:\n");
+   	for (i = 0; i < processes; i++) {
+       	for (j = 0; j < resources; j++) {
+            	scanf("%d", &max[i][j]);
+        }
+    }
+	printf("Give the available resources :\n");
+    for (i = 0; i < resources; i++) {
+       	scanf("%d", &available[i]);
+   	}
+    do
+    {
+    	printf("--------------------------\nMENU\n1.System safe state checking\n2.Request Made by a process\n3.Exit\n-------------------------\n");
+    	printf("Give your choice : ");
+		scanf("%d",&choice);
+    	if(choice==1)
+    	{
+    		printf("\n\tSystem safe checking\n\n");
+    		printf("\n\nALLOCATION\tMAXIMUM\t\tNEED\t\tAVAILABLE\n\n");
+		for (i = 0; i < processes; i++) 
+		{
+       			for (j = 0; j < resources; j++) 
+			{
+            			printf("%d ",allocation[i][j]);
+        		}
+        		printf("\t");
+        		for (j = 0; j < resources; j++) 
+			{
+            			printf("%d ",max[i][j]);
+        		}
+        		printf("\t");
+        		for (j = 0; j < resources; j++) 
+			{
+            			printf("%d ",max[i][j]-allocation[i][j]);
+        		}
+        		printf("\t");
+        		if(i==0)
+        		{
+        			for (j = 0; j < resources; j++) 
+				{
+            				printf("%d ",available[j]);
+        			}
+			}
+			printf("\n");
+    		}
+    		int res=detectSafety(processes,resources,available,max,allocation);
+    		if(res==-1)
+    		{ 
+   			printf("The system is Not in safe state\n");
+    	    	        break;
+			
+			}
+		}
+		else if(choice==2)
+		{
+			printf("\n\nResource request checking\n");
+			int n,req[MAX];
+			printf("\n\nALLOCATION\tMAXIMUM\t\tNEED\t\tAVAILABLE\n\n");
+			for (i = 0; i < processes; i++) 
+			{
+       				for (j = 0; j < resources; j++) 
+				{
+            				printf("%d ",allocation[i][j]);
+        			}
+        			printf("\t");
+        			for (j = 0; j < resources; j++) 
+				{
+            				printf("%d ",max[i][j]);
+        			}
+        			printf("\t");
+        			for (j = 0; j < resources; j++) 
+				{
+            				printf("%d ",max[i][j]-allocation[i][j]);
+        			}
+        			printf("\t");
+        			if(i==0)
+        			{
+        				for (j = 0; j < resources; j++) {
+            					printf("%d ",available[j]);
+        				}
+				}
+				printf("\n");
+    			}
+    			printf("\nWhich process Made the Request ? ");
+			scanf("%d",&n);
+			printf("Give the Requested resources\n");
+			for(i=0;i<resources;i++)
+				scanf("%d",&req[i]);
+			int res=processResourceReq(processes,resources,n,req,available,max,allocation);
+			if(res==-2)
+			{
+				printf("\n\nThe Request made by the process %d Exceeds the limit\n",n);
+				printf("\n\nThe request cannot be granted\n");
+			}
+			else if(res==-3)
+			{
+				printf("\nThe Resources are not available\n");
+				printf("\nThe request cannot be granted\n");
+			}
+    			if(res==-1)
+    			{
+				for(i=0;i<resources;i++)
+			for(i=0;i<resources;i++)
+                                {
+                                   allocation[n][i]-=req[i];
+                                   available[i]+=req[i];
+                                }	
+    				printf("The request cannot be granted\n");
+			}
+		}
+	}while(choice!=3);
+    return 0;
+}
+
+[21bcs033@mepcolinux BANK]$cat makefile
+bank: imp.o app.o
+	cc imp.o app.o -o bank
+app.o: app.c
+	cc app.c -c
+imp.o: imp.c
+	cc imp.c -c
+
+[21bcs033@mepcolinux BANK]$make
+make: `bank' is up to date.
+[21bcs033@mepcolinux BANK]$./bank
+		BANKERS ALGORTHIM
+
+Number of processes: 5
+Number of resources: 4
+Give the allocation matrix:
+0 0 1 2
+1 0 0 0
+1 3 5 4
+0 6 3 2
+0 0 1 4
+Give the maximum matrix:
+0 0 1 2
+1 7 5 0
+2 3 5 6
+0 6 5 2
+0 6 5 2
+Give the available resources :
+1 5 2 0
+--------------------------
+MENU
+1.System safe state checking
+2.Request Made by a process
+3.Exit
+-------------------------
+Give your choice : 1
+
+	System safe checking
+
+
+
+ALLOCATION	MAXIMUM		NEED		AVAILABLE
+
+0 0 1 2 	0 0 1 2 	0 0 0 0 	1 5 2 0 
+1 0 0 0 	1 7 5 0 	0 7 5 0 	
+1 3 5 4 	2 3 5 6 	1 0 0 2 	
+0 6 3 2 	0 6 5 2 	0 0 2 0 	
+0 0 1 4 	0 6 5 2 	0 6 4 -2 	
+
+System is in a safe state
+
+Safe sequence is: < P0 , P2 , P1 , P3 , P4 >
+--------------------------
+MENU
+1.System safe state checking
+2.Request Made by a process
+3.Exit
+-------------------------
+Give your choice : 2
+
+
+Resource request checking
+
+
+ALLOCATION	MAXIMUM		NEED		AVAILABLE
+
+0 0 1 2 	0 0 1 2 	0 0 0 0 	1 5 2 0 
+1 0 0 0 	1 7 5 0 	0 7 5 0 	
+1 3 5 4 	2 3 5 6 	1 0 0 2 	
+0 6 3 2 	0 6 5 2 	0 0 2 0 	
+0 0 1 4 	0 6 5 2 	0 6 4 -2 	
+
+Which process Made the Request ? 1
+Give the Requested resources
+0 1 2 0
+
+System is in a safe state
+
+Safe sequence is: < P0 , P2 , P1 , P3 , P4 >
+--------------------------
+MENU
+1.System safe state checking
+2.Request Made by a process
+3.Exit
+-------------------------
+Give your choice : 2
+
+
+Resource request checking
+
+
+ALLOCATION	MAXIMUM		NEED		AVAILABLE
+
+0 0 1 2 	0 0 1 2 	0 0 0 0 	1 4 0 0 
+1 1 2 0 	1 7 5 0 	0 6 3 0 	
+1 3 5 4 	2 3 5 6 	1 0 0 2 	
+0 6 3 2 	0 6 5 2 	0 0 2 0 	
+0 0 1 4 	0 6 5 2 	0 6 4 -2 	
+
+Which process Made the Request ? 3
+Give the Requested resources
+8 3 4 5
+
+
+The Request made by the process 3 Exceeds the limit
+
+
+The request cannot be granted
+--------------------------
+MENU
+1.System safe state checking
+2.Request Made by a process
+3.Exit
+-------------------------
+Give your choice : 2
+
+
+Resource request checking
+
+
+ALLOCATION	MAXIMUM		NEED		AVAILABLE
+
+0 0 1 2 	0 0 1 2 	0 0 0 0 	1 4 0 0 
+1 1 2 0 	1 7 5 0 	0 6 3 0 	
+1 3 5 4 	2 3 5 6 	1 0 0 2 	
+0 6 3 2 	0 6 5 2 	0 0 2 0 	
+0 0 1 4 	0 6 5 2 	0 6 4 -2 	
+
+Which process Made the Request ? 4
+Give the Requested resources
+0 1 2 0
+
+
+The Request made by the process 4 Exceeds the limit
+
+
+The request cannot be granted
+--------------------------
+MENU
+1.System safe state checking
+2.Request Made by a process
+3.Exit
+-------------------------
+Give your choice : 3
+[21bcs033@mepcolinux BANK]$./bank 
+		BANKERS ALGORTHIM
+
+Number of processes: 5
+Number of resources: 4
+Give the allocation matrix:
+3 0 1 4
+2 2 1 0
+3 1 2 1
+0 5 1 0
+4 2 1 2
+Give the maximum matrix:
+4 5 1 1 7
+3 2 1 1
+3 3 2 1
+4 6 1 2
+6 3 2 5
+Give the available resources :
+0 3 0 1
+--------------------------
+MENU
+1.System safe state checking
+2.Request Made by a process
+3.Exit
+-------------------------
+Give your choice : 1
+
+	System safe checking
+
+
+
+ALLOCATION	MAXIMUM		NEED		AVAILABLE
+
+3 0 1 4 	5 1 1 7 	2 1 0 3 	0 3 0 1 
+2 2 1 0 	3 2 1 1 	1 0 0 1 	
+3 1 2 1 	3 3 2 1 	0 2 0 0 	
+0 5 1 0 	4 6 1 2 	4 1 0 2 	
+4 2 1 2 	6 3 2 5 	2 1 1 3 	
+The system is Not in safe state
+[21bcs033@mepcolinux BANK]$exit
+exit

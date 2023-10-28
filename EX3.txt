@@ -1,0 +1,323 @@
+﻿					EX3
+
+[21bcs033@mepcolinux EX-3]$cat EX3.prn 
+Script started on Wednesday 16 August 2023 03:23:26 PM IST
+[21bcs033@mepcolinux EX-3]$cd SM
+[21bcs033@mepcolinux SM]$cat prgm1.c 
+/*
+ * c program to sort the first half of the array using shared memory
+ * */
+#include <stdio.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+
+int main () {
+    int *arr;
+    int n, i, j, shmid, temp;
+    shmid = shmget ((key_t)2345, sizeof(int)* 20, 0700| IPC_CREAT);
+
+    if (shmid == -1) {
+        printf ("Error IN CREATING SHARED MEMORY\n");
+        return 0;
+    }
+
+    arr = (int*) shmat (shmid, NULL, 0700);
+    if (arr == (int*) -1) {
+        printf ("Error\n");
+        return 0;
+    }
+    printf ("size of array n : ");
+    scanf ("%d",&n);
+    arr[0] = n;
+    arr[19] = 0;
+    printf("\nArray elements :\n");
+    for (i = 1; i <= n; i++) {
+        scanf ("%d",&arr[i]);
+    }
+    printf("\nArray before Sorting\n");
+    for(i=1;i<=n;i++)
+       printf("%d ",arr[i]);
+    printf("\n");
+    arr[19] = 1;
+    for (i = 1; i < n/2; i++) {
+        for (j = i+1; j <= n/2; j++) {
+            if (arr[i] > arr[j]) {
+                temp=arr[i];
+                arr[i]=arr[j];
+                arr[j]=temp;
+            }
+        }
+    }
+    printf("\nArray after Sorting \n");
+    while (arr[19] == 1);
+    i=1,j=(n/2)+1;
+    while(i <= n/2 && j <=n)
+    {
+       if(arr[i] < arr[j])
+       {
+	  printf("%d ",arr[i]);
+	  i++;
+       }
+       else
+       {
+	  printf("%d ",arr[j]);
+	  j++;
+       }
+    }
+   while(i<=n/2)
+   {
+      printf("%d ",arr[i]);
+      i++;
+   }
+   while(j<=n)
+   {
+   	printf("%d ",arr[j]);
+	j++;
+   }
+
+   printf("\n");
+ 
+    shmdt(arr);
+    shmctl (shmid,IPC_RMID, NULL);
+}
+
+[21bcs033@mepcolinux SM]$cat prgm2.c 
+/*
+ * c program t sort the second half of the array using shared memory
+ * */
+#include <stdio.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+
+int main () {
+    int *arr1;
+    int n, i, j, shmid, temp;
+    shmid = shmget ((key_t) 2345, sizeof(int)* 20, 0700);
+
+    if (shmid == -1) {
+        printf ("Error in creating shared memory\n");
+        return 0;
+    }
+
+    arr1 = (int*) shmat (shmid, NULL, 0700);
+    if (arr1 == (int*) -1) {
+        printf ("Error\n");
+        return 0;
+    }
+    n=arr1[0];
+    while(arr1[19] = 0);
+    for (i = (n/2)+1; i < n; i++) {
+        for (j = i+1; j <= n; j++) {
+            if (arr1[i] > arr1[j]) {
+                temp=arr1[i];
+                arr1[i]=arr1[j];
+                arr1[j]=temp;
+            }
+        }
+    }
+    arr1[0];
+    shmdt(arr1);
+    shmctl (shmid,IPC_RMID, NULL);
+}
+
+
+[21bcs033@mepcolinux SM]$./pr1
+size of array n : 10
+
+Array elements :
+25 45 12 7 87 19 54 8 1 33
+
+Array before Sorting
+25 45 12 7 87 19 54 8 1 33 
+
+Array after Sorting 
+1 7 8 12 19 25 33 45 54 87 
+[21bcs033@mepcolinux SM]$cd ..
+[21bcs033@mepcolinux EX-3]$cd MQ/
+[21bcs033@mepcolinux MQ]$cat main.c 
+/*
+ * C program to implement inter process communication (IPC) using Message Queue
+ * */
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
+#include<sys/ipc.h>
+#include<sys/msg.h>
+#include<unistd.h>
+struct msg
+{
+   	int type;
+	char text[100];
+}*m;
+int main()
+{
+   int msgid;
+   key_t key;
+   key=ftok("progfile",65);
+   msgid=msgget((key_t)4509,0700|IPC_CREAT);
+   if (msgid==-1)
+   {
+      printf("Error in creating shared memory\n");
+      return 1;
+   }
+   m=(struct msg*)malloc(sizeof(struct msg));
+   while(1)
+   {
+      msgrcv(msgid,m,110,0,0);
+      if(m->type ==1)
+      {
+		int n,i,ch,count=0;
+		char word[50];
+		printf("Input string  : %s \n",m->text);
+		printf("\nGive the  word to  count its occurence: ");
+		scanf("%s",word);
+		char *token=strtok(m->text," ");
+		while(token!=NULL)
+		{
+		   if (strcmp(token,word)==0)
+		   {
+		      count++;
+		   }
+		   token=strtok(NULL," ");
+		}
+		printf("The word '%s' is occured %d time\n",word,count);
+	        
+
+      }
+      else if(m->type ==2)
+      {
+	  int n,i,counta =0,counte=0,counti=0,counto=0,countu=0;
+	  printf("Input string  : %s\n ",m->text);
+	  n=strlen(m->text);
+	  for(i=0;i<=n;i++)
+	  {
+	    
+	     if(m->text[i]=='a'||m->text[i]=='A')
+		counta++;
+	     if(m->text[i]=='e'||m->text[i]=='E')
+	     	counte++;
+	     if(m->text[i]=='i'||m->text[i]=='I')
+		counti++;
+	     if(m->text[i]=='o'||m->text[i]=='O')
+		counto++;
+	     if(m->text[i]=='u'||m->text[i]=='U')
+		countu++;
+
+	  }
+	  printf("-----------------------------------\n");
+	  printf("\tVOWELS COUNT\n");
+	  printf("Character 'a' occurence %d times\n",counta);
+	  printf("Character 'e' occurence %d times\n",counte);
+	  printf("character 'i' occurence %d times\n",counti);
+	  printf("Character 'o' occurence %d times\n",counto);
+	  printf("Character 'u' occurence %d times\n",countu);
+
+	    
+      }
+      printf("\nDo you want to continue \n1.Yes\n2.No\n");
+      int ch;
+      scanf("%d",&ch);
+      if(ch==2)
+	 break;
+      
+   }
+   msgctl(msgid,IPC_RMID,NULL);
+}
+
+[21bcs033@mepcolinux MQ]$cat prgm1.c 
+/* 
+ * C program to get a line of input from user to find the occurrence of a given word  
+ * */
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<sys/ipc.h>
+#include<sys/msg.h>
+#include<unistd.h>
+struct buf
+{
+   int type;
+   char text[100];
+}*b;
+int main()
+{
+   int msgid;
+   key_t key;
+   key=ftok("progfile",65);
+   msgid=msgget((key_t)4509,0700|IPC_CREAT);
+   if (msgid==-1)
+   {
+      printf("error");
+      exit(0);
+   }
+   b=(struct buf*)malloc(sizeof(struct buf));
+   printf("Give the input string\n");
+   scanf("%[^\n]",b->text);
+   b->type=1;
+   msgsnd(msgid,b,110,0);
+ }
+
+[21bcs033@mepcolinux MQ]$cat prgm2.c 
+/* 
+ * C program to get a line of input from user to find the occurrence of vowels  
+ * */
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<sys/ipc.h>
+#include<sys/msg.h>
+#include<unistd.h>
+struct buf
+{
+   int type;
+   char text[100];
+}*b;
+int main()
+{
+   int msgid;
+   int ch;
+   key_t key;
+   key=ftok("progfile",65);
+   msgid=msgget((key_t)4509,0700|IPC_CREAT);
+   if (msgid==-1)
+   {
+      printf("error");
+      return 1;
+   }
+   b=(struct buf*)malloc(sizeof(struct buf));
+   printf("Enter the input string\n");
+   scanf("%[^\n]",b->text);
+   b->type=2;
+   sgsnd(msgid,b,110,0);
+   return 0;
+}
+
+
+[21bcs033@mepcolinux MQ]$cc main.c -o ma
+[21bcs033@mepcolinux MQ]$./ma
+Input string  : i am swetha i am a cse student 
+
+Give the  word to  count its occurence: am
+The word 'am' is occured 2 time
+
+Do you want to continue 
+1.Yes
+2.No
+1
+Input string  : process is a program in execution
+ -----------------------------------
+	VOWELS COUNT
+Character 'a' occurence 2 times
+Character 'e' occurence 3 times
+character 'i' occurence 3 times
+Character 'o' occurence 3 times
+Character 'u' occurence 1 times
+
+Do you want to continue 
+1.Yes
+2.No
+2
+[21bcs033@mepcolinux MQ]$exit
+exit
+
+Script done on Wednesday 16 August 2023 03:30:34 PM IST

@@ -1,0 +1,166 @@
+﻿					EX-1
+[21bcs033@mepcolinux EX-1]$cat EX1.prn 
+Script started on Thursday 20 July 2023 02:59:52 PM IST
+[21bcs033@mepcolinux EX-1]$cat sumoddeve.c
+/*
+ * C program to sum the  odd and even numbers in an array using fork system call
+ **/
+#include <stdio.h>
+#include <sys/types.h>
+#include <unistd.h>
+int main()
+{
+	int a,b,c;
+	int n,i,odd=0,even=0;
+	int arr[10];
+	printf("Enter the number of elements:");
+	scanf("%d",&n);
+	printf("Enter Elements :");
+	for(i=0;i<n;i++)
+		scanf("%d",&arr[i]);
+	printf("----------------------------\n");
+	a=fork();
+	if (a < 0)
+	{
+		printf("there is an error in creating process");
+	}
+	if(a == 0)
+	{
+			for(i=0;i<n;i++)
+			{
+				if(arr[i]%2!=0)
+					odd=odd+arr[i];
+			}
+			printf("\nParent id :%d\n",getppid());
+			printf("\nSum of Odd number : %d\n",odd);
+	  
+
+	}
+	if(a !=0)
+	{
+		b=fork();
+		if(b<0)
+			printf("there is an error\n");
+		else if(b == 0)
+		{
+                        
+			for(i=0;i<n;i++)
+			{ 
+				if(arr[i]%2==0)
+					even=even+arr[i];
+			}
+			printf("\nParent id :%d\n",getppid());
+			printf("\nSum of Even number : %d\n",even);
+
+        	}
+	}
+	 
+}
+[21bcs033@mepcolinux EX-1]$cc sumoddeve.c -o sum
+[21bcs033@mepcolinux EX-1]$./sum
+Enter the number of elements:6
+Enter Elements :2
+34
+5
+75
+6
+3
+----------------------------
+[21bcs033@mepcolinux EX-1]$
+Parent id :1
+
+Sum of Even number : 42
+
+Parent id :1
+
+Sum of Odd number : 83
+
+[21bcs033@mepcolinux EX-1]$cat Heirarchy.c
+/*
+ * C program to create hierarchical process
+ **/
+#include<stdio.h>
+#include<sys/types.h>
+#include<sys/stat.h>
+#include<unistd.h>
+#include<fcntl.h>
+void main()
+{
+	int a,b,c,d,e,f;
+	printf("PROCESS ID\tPARENT \n");
+	a=fork();
+	b=fork();
+	if(a<0 || b<0)
+	{
+		printf("Process cannot be created \n");
+	}
+	else
+	{
+			if(a>0 && b>0)
+				printf("P1 :\t%d\t-\n",getpid());
+			else if(a==0 && b>0)
+			{
+				printf("P2 :\t%d\t%d\n",getpid(),getppid());
+			}
+			else if(a==0 && b==0)
+			{
+				printf("P4 :\t%d\t%d\n",getpid(),getppid());
+				c=fork();
+				if(c<0)
+					printf("Process cannot be created \n");
+				else if(a==0 && b==0 && c==0)
+					printf("P6 :\t%d\t%d\n",getpid(),getppid());	
+			}
+			else if(a>0 && b==0)
+			{
+				printf("P3 :\t%d\t%d\n",getpid(),getppid());
+				d=fork();
+				if(d<0)
+				{
+					printf("Process cannot be created");
+				}
+				else if(a>0 && b==0 && d==0)
+				{
+					printf("P5 :\t%d\t%d\n",getpid(),getppid());
+					e=fork();
+					if(e<0)
+					{
+						printf("Process cannot be created\n");
+					}
+					else if(a>0 && b==0 && d==0 && e==0)
+					{
+						printf("P7 :\t%d\t%d\n",getpid(),getppid());
+					}
+					else if(a>0 && b==0 && d==0 && e>0 )
+					{
+						f=fork();
+						if(f<0)
+							printf("Process cannot be created\n");
+						else if(a>0 && b==0 && d==0 && e>0 && f==0)
+						{
+							printf("P8 :\t%d\t%d\n",getpid(),getppid());
+						}
+						
+					}
+				}
+			}
+			
+	}
+	wait(NULL);
+	wait(NULL);
+	wait(NULL);
+}
+[21bcs033@mepcolinux EX-1]$cc Heirarchy.c -o heir
+[21bcs033@mepcolinux EX-1]$./heir
+PROCESS ID	PARENT 
+P1 :	124461	-
+P3 :	124463	124461
+P2 :	124462	124461
+P5 :	124465	124463
+P4 :	124464	124462
+P6 :	124468	124464
+P8 :	124467	124465
+P7 :	124466	124465
+[21bcs033@mepcolinux EX-1]$exit
+exit
+
